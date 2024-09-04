@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: invitation-service
+  profiles:
+    active:
+      - local
+    group:
+      local:
+        - db-local
+        - eureka-local
+      prod:
+        - db-prod
+        - eureka-prod
+    include:
+      - db
+      - eureka
+      - aws
+server:
+  port: 8090
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    export:
+      prometheus:
+        enabled: true
