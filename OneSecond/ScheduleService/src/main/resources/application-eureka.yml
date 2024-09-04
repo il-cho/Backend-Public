@@ -1,0 +1,32 @@
+eureka:
+  instance:
+    instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}} #랜덤 포트 및 인스턴스 표시를 통해 같은 서버 여러 개 생성 가능
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka #Eureka Server 명시
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://discovery:8761/eureka

@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: schedule-service
+  profiles:
+    active:
+      - prod
+    group:
+      local:
+        - db-local
+        - eureka-local
+      prod:
+        - db-prod
+        - eureka-prod
+    include:
+      - db
+      - eureka
+
+server:
+  port: 8085
