@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: chat-service
+  profiles:
+    active:
+      - local
+    group:
+      local:
+        - db-local
+        - eureka-local
+        - kafka-local
+      prod:
+        - db-prod
+        - eureka-prod
+        - kafka-prod
+    include:
+      - db
+      - eureka
+      - kafka
+
+server:
+  port: 8081
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    export:
+      prometheus:
+        enabled: true
