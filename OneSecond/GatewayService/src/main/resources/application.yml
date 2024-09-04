@@ -1,0 +1,133 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active:
+      - local
+    group:
+      local:
+        - eureka-local
+      prod:
+        - eureka-prod
+    include:
+      - eureka
+      - jwt
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+      global-cors:
+        cors-configurations:
+          '[/**]':
+            #            allowedOrigins: '*' # 프론트 배포 주소 'http://devtalk-front.s3-website.ap-northeast-2.amazonaws.com'
+            allowedOriginPatterns: '*'
+            allow-credentials: true # JWT나 쿠키를 사용해 메시지를 보내야 할 경우 true
+            allowedHeaders: '*'
+            allowedMethods: # 메서드를 명시하지 않으면 안되는 경우도 있기 때문에 메서드는 명시해주는 편이 좋다고 한다.
+              - PATCH
+              - PUT
+              - GET
+              - POST
+              - DELETE
+              - OPTIONS
+      routes:
+        - id: user-service-login
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/oauth2/authorization/naver, /api/oauth2/authorization/kakao
+            - Query=mode, login
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+
+        - id: user-service-no-auth
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/user/token, /api/user/chat, /api/login/**, /api/auth/reissue
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/user/**, /api/oauth2/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
+
+        - id: invitation-service-no-auth
+          uri: lb://INVITATION-SERVICE
+          predicates:
+            - Path=/api/invitation/view/{invitationCode}, /api/invitation/participant/list/{invitationCode}
+            - Method=GET
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+
+        - id: invitation-service
+          uri: lb://INVITATION-SERVICE
+          predicates:
+            - Path=/api/invitation/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
+
+        - id: schedule-service-no-auth
+          uri: lb://SCHEDULE-SERVICE
+          predicates:
+            - Path=/api/schedule/{invitationCode}
+            - Method=GET
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+
+        - id: schedule-service
+          uri: lb://SCHEDULE-SERVICE
+          predicates:
+            - Path=/api/schedule/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
+
+        - id: map-service-no-auth
+          uri: lb://PLACE-SERVICE
+          predicates:
+            - Path=/api/places/**
+            - Method=GET
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+
+        - id: map-service
+          uri: lb://PLACE-SERVICE
+          predicates:
+            - Path=/api/places/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
+
+        - id: chat-service
+          uri: lb://CHAT-SERVICE
+          predicates:
+            - Path=/api/chat/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+
+        - id: chatbot-service-no-auth
+          uri: lb://CHATBOT-SERVICE
+          predicates:
+            - Path=/api/chatbot/prompt/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+
+        - id: chatbot-service
+          uri: lb://CHATBOT-SERVICE
+          predicates:
+            - Path=/api/chatbot/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+            - AuthorizationHeaderFilter
+
+logging:
+  level:
+    root: INFO
+    com.ssafy.gatewayservice: DEBUG
